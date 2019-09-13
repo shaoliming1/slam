@@ -30,6 +30,14 @@ if(NOT OpenCV_FOUND)
         message(FATAL_ERROR "OpenCV > 2.4.3 not found.")
     endif()
 endif()
+
+set(Boost_USE_STATIC_LIBS ON)
+FIND_PACKAGE(Boost 1.54 COMPONENTS log REQUIRED)
+find_package(Threads)
+
+include_directories(${Boost_INCLUDE_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package( Sophus REQUIRED )
 message(${Sophus_INCLUDE_DIRS})
@@ -50,3 +58,5 @@ add_library(${PROJECT_NAME} SHARED
         src/config.cpp
         src/visual_odometry.cpp
         )
+add_executable(boost_log test/boost_log_test.cpp)
+TARGET_LINK_LIBRARIES(boost_log ${Boost_LIBRARIES} Threads::Threads)

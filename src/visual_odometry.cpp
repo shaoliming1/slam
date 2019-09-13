@@ -15,7 +15,7 @@ namespace slam
 {
 
     VisualOdometry::VisualOdometry() :
-            state_ ( INITIALIZING ), ref_ ( nullptr ), curr_ ( nullptr ), map_ ( new Map ), num_lost_ ( 0 ), num_inliers_ ( 0 )
+            ref_ ( nullptr ), curr_ ( nullptr ), map_ ( new Map ), num_lost_ ( 0 ), num_inliers_ ( 0 )
     {
         num_of_features_    = Config::get<int> ( "number_of_features" );
         scale_factor_       = Config::get<double> ( "scale_factor" );
@@ -26,6 +26,7 @@ namespace slam
         key_frame_min_rot   = Config::get<double> ( "keyframe_rotation" );
         key_frame_min_trans = Config::get<double> ( "keyframe_translation" );
         orb_ = cv::ORB::create ( num_of_features_, scale_factor_, level_pyramid_ );
+
     }
 
     VisualOdometry::~VisualOdometry()
@@ -90,12 +91,12 @@ namespace slam
 
     void VisualOdometry::extractKeyPoints()
     {
-        orb_->detect ( curr_->color_, keypoints_curr_ );
+        orb_->detect ( curr_->getColorMat(), keypoints_curr_ );
     }
 
     void VisualOdometry::computeDescriptors()
     {
-        orb_->compute ( curr_->color_, keypoints_curr_, descriptors_curr_ );
+        orb_->compute ( curr_->getColorMat(), keypoints_curr_, descriptors_curr_ );
     }
 
     void VisualOdometry::featureMatching()
@@ -197,8 +198,8 @@ namespace slam
     bool VisualOdometry::checkKeyFrame()
     {
         Sophus::Vector6d d = T_c_r_estimated_.log();
-        Vector3d trans = d.head<3>();
-        Vector3d rot = d.tail<3>();
+        Sophus::Vector3d trans = d.head<3>();
+        Sophus::Vector3d rot = d.tail<3>();
         if ( rot.norm() >key_frame_min_rot || trans.norm() >key_frame_min_trans )
             return true;
         return false;
@@ -210,8 +211,15 @@ namespace slam
         map_->insertKeyFrame ( curr_ );
     }
 
-    int InitVoState::handleAddFrame(slam::VisualOdometry &vo, Frame::Ptr frame) {
-        
+    int InitVOState::handleAddFrame(slam::VisualOdometry &vo, Frame::Ptr frame) {
+        vo.curr_ = frame;
+        vo.extractKeyPoints();
+        if(vo.keypoints_curr_.size() < VisualOdometry::MIN_INIT_KEYPOINTS_SIZE){
+
+            return InitVOState::ERROR;
+        }
+
+        vo.computeDescriptors();
     }
 
 }

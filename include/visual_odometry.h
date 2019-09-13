@@ -10,40 +10,43 @@
 namespace slam
 {
     class VOState;
+    class InitVOState;
     class VisualOdometry
     {
-        friend class VOState;
-
+        //friend  class VOState;
     private:
-        VOState     state_;     // current VO status
+        std::unique_ptr<VOState>     state_;     // current VO status
         Map::Ptr    map_;       // map with all frames and map points
         Frame::Ptr  ref_;       // reference frame
-
         Frame::Ptr  curr_;      // current frame
+
         cv::Ptr<cv::ORB> orb_;  // orb detector and computer
         std::vector<cv::Point3f>     pts_3d_ref_;        // 3d points in reference frame
         std::vector<cv::KeyPoint>    keypoints_curr_;    // keypoints in current frame
         cv::Mat                     descriptors_curr_;  // descriptor in current frame
         cv::Mat                     descriptors_ref_;   // descriptor in reference frame
-
         std::vector<cv::DMatch>      feature_matches_;
+
         Sophus::SE3 T_c_r_estimated_;  // the estimated pose of current frame
         int num_inliers_;        // number of inlier features in icp
-
         int num_lost_;           // number of lost times
+
         // parameters
         int num_of_features_;   // number of features
         double scale_factor_;   // scale in image pyramid
         int level_pyramid_;     // number of pyramid levels
         float match_ratio_;      // ratio for selecting  good matches
         int max_num_lost_;      // max number of continuous lost times
-
         int min_inliers_;       // minimum inliers
-        double key_frame_min_rot;   // minimal rotation of two key-frames
 
+        double key_frame_min_rot;   // minimal rotation of two key-frames
         double key_frame_min_trans; // minimal translation of two key-frames
+
+        const static int MIN_INIT_KEYPOINTS_SIZE = 100; // 单目slam初始化的关键点的最小数量
+
     public:
         using Ptr = std::shared_ptr<VisualOdometry>;
+        friend class InitVOState;
         VisualOdometry();
         ~VisualOdometry();
 
@@ -80,7 +83,7 @@ namespace slam
 
     };
 
-    class InitVoState:public VOState{
+    class InitVOState:public VOState{
     protected:
         static const State status = INITIALIZING;
     public:

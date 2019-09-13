@@ -30,6 +30,11 @@ public:
     // 获得相机光心
     Eigen::Vector3d getCameraCenter() const;
 
+    // Fixme: this function name may be need
+    cv::Mat& getColorMat(){
+        return color_;
+    }
+
     // check if a point is in this frame
     bool isInFrame(const Eigen::Vector3d & pt_world);
 
