@@ -9,7 +9,9 @@ int main(){
     auto p = myLogger::getLogger();
     p->info("shaoliming");
     p->info("shaoliming");
-    p->debugf("error  - %s", "shaoliming");
-    delete p;
+    p->debugf("ERROR - %s", "exhaused memory");
+
+    // TODO: it's not good to delete the singleton manually
+    p->finish();
     return 0;
 }

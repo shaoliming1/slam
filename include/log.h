@@ -74,12 +74,14 @@ inline std::ostream& operator<< (std::ostream& strm, severityLevel level)
 BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(globalLogger, src::severity_logger< severityLevel > )
 
 
+// FIXME: how do we log log the line number and the file name automaticlly?
 // logger interface
 class logger
 {
 public:
 
     virtual void init() = 0;
+    virtual void finish() = 0;
 //        virtual std::unique_ptr<logger> getDefaultLogger() = 0;
 //        virtual std::unique_ptr<logger> getLogger();
 
@@ -113,6 +115,7 @@ private:
 public:
 
     void init() override;
+    void finish() override;
 
     void debug(const std::string &msg) override;
     void debugf(const std::string &fmt, ...) override;
@@ -139,7 +142,7 @@ private:
     myLogger(const myLogger &) = delete;
     myLogger& operator=(const myLogger &) = delete;
     void print(const std::string &msg, severityLevel level);
-    std::string format(const std::string &fmt, ...);
+    std::string format(const std::string &fmt, va_list arg);
 public:
     static logger*
     getLogger(asynchronousSink *sink = nullptr, std::string logFileName = DEFAULT_LOG_FILE_NAME,

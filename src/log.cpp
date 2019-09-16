@@ -56,32 +56,6 @@ slam::logger* slam::myLogger::getLogger(slam::myLogger::asynchronousSink *sink, 
     return ptr;
 }
 
-//void myLogger::init()
-//{
-////    // Construct the sink
-////    typedef sinks::synchronous_sink< sinks::text_ostream_backend > text_sink;
-////    boost::shared_ptr< text_sink > sink = boost::make_shared< text_sink >();
-//
-//    typedef sinks::text_ostream_backend backend_t;
-//    typedef sinks::asynchronous_sink<
-//            backend_t,
-//            sinks::unbounded_ordering_queue<
-//                    logging::attribute_value_ordering< unsigned int, std::less< unsigned int > >
-//            >
-//    > sink_t;
-//    boost::shared_ptr< sink_t > sink(new sink_t(
-//            boost::make_shared< backend_t >(),
-//            // We'll apply record ordering to ensure that records from different threads go sequentially in the file
-//            keywords::order = logging::make_attr_ordering("RecordID", std::less< unsigned int >())));
-//
-//    // Add a stream to write log to
-//    sink->locked_backend()->add_stream(
-//            boost::make_shared< std::ofstream >(_logFileName));
-//
-//    // Register the sink in the logging core
-//    logging::core::get()->add_sink(sink);
-//}
-
 void myLogger::init()
 {
     try
@@ -123,43 +97,30 @@ void myLogger::init()
         exit(-1);
     }
 }
+
+void myLogger::finish(){
+    auto p = instance.load();
+    if(p){
+        delete p;
+    }
+}
+
 void myLogger::print(const std::string &msg, severityLevel level)
 {
-//    auto ptr = instance.load();
-//
-//    if(!ptr)
-//    {
-//        throw std::runtime_error("");
-//    }
-//    src::severity_logger< severityLevel > slg;
     auto slg = globalLogger::get();
     BOOST_LOG_SEV(slg,level) << msg;
 }
 
-//    std::string myLogger::format(const std::string &fmt, ...){
-//        std::string result;
-//        va_list args;
-//        va_start(args, fmt);
-//        {
-//            int len = vscprintf(fmt.c_str(), args);
-//            len += 1;
-//            std::vector<char> vectorChars(len);
-//            vsnprintf(vectorChars.data(), len, fmt.c_str(), args);
-//            result.assign(vectorChars.data());
-//        }
-//        va_end(args);
-//        return result;
-//    }
-
-std::string myLogger::format(const std::string &fmt, ...)
+std::string myLogger::format(const std::string &fmt, va_list arg)
 {
     int size = ((int)fmt.size()) * 2 + 50;   // Use a rubric appropriate for your code
     std::string str;
-    va_list ap;
+    //va_list ap;
+    va_list  ap;
     while (1)       // Maximum two passes on a POSIX system...
     {
         str.resize(size);
-        va_start(ap, fmt);
+        va_copy(ap, arg);
         int n = vsnprintf((char *)str.data(), size, fmt.c_str(), ap);
         va_end(ap);
         if (n > -1 && n < size)    // Everything worked
@@ -183,10 +144,8 @@ void myLogger::debug(const std::string &msg)
 void myLogger::debugf(const std::string &fmt, ...)
 {
     va_list args;
-    va_list argsCopies;
     va_start(args, fmt);
-    va_copy(argsCopies, args);
-    auto ret = format(fmt, argsCopies);
+    auto ret = format(fmt, args);
     va_end(args);
     return debug(ret);
 }
