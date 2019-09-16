@@ -12,7 +12,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
 # Check C++11 or C++0x support
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
-CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 if(COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     add_definitions(-DCOMPILEDWITHC11)
@@ -57,6 +56,19 @@ add_library(${PROJECT_NAME} SHARED
         src/mappoint.cpp
         src/config.cpp
         src/visual_odometry.cpp
+        src/log.cpp
         )
 add_executable(boost_log test/boost_log_test.cpp)
 TARGET_LINK_LIBRARIES(boost_log ${Boost_LIBRARIES} Threads::Threads)
+
+add_executable(basic_log_ex1  test/basic_log_ex.cpp)
+TARGET_LINK_LIBRARIES(basic_log_ex1 ${Boost_LIBRARIES})
+
+add_executable(mylogger_test test/mylogger_test.cpp src/log.cpp)
+TARGET_LINK_LIBRARIES(mylogger_test ${Boost_LIBRARIES})
+
+add_executable(boost_log_mt_test test/boost_log_mt_test.cpp)
+TARGET_LINK_LIBRARIES(boost_log_mt_test ${Boost_LIBRARIES})
+
+add_executable(boost_log_async test/boost_log_async.cpp)
+TARGET_LINK_LIBRARIES(boost_log_async ${Boost_LIBRARIES})
