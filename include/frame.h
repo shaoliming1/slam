@@ -31,7 +31,8 @@ public:
     Eigen::Vector3d getCameraCenter() const;
 
     // Fixme: this function name may be need
-    cv::Mat& getColorMat(){
+    cv::Mat& getColorMat()
+    {
         return color_;
     }
 
